@@ -44,8 +44,10 @@ namespace SS_API
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}/{request}")]
-        public void Put(string id,string request, [FromBody] string value)
+        public void Put(string id,string request,string function, [FromBody] string value)
         {
+            value.Replace("\\",String.Empty);
+
             if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
