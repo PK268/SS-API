@@ -4,13 +4,13 @@
     {
         public string Username;
         public string Password;
-        public string Email;
+        public string PFPLocation;
 
-        public User(string username, string password, string email)
+        public User(string username, string password, string pfpLocation)
         {
             Username = username;
             Password = password;
-            Email = email;
+            PFPLocation = pfpLocation;
         }
     }
 }
