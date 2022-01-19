@@ -22,7 +22,7 @@ namespace SS_API
         [HttpGet]
         public string Get()
         {
-            return "Hello! Please use the correct format:\"https://matgames.net/api/S9_UID/{ID}/\" -Travis" + " " + Directory.GetCurrentDirectory();
+            return "Hello! Please use the correct format:\"https://matgames.net/api/S9_UID/{category}/{request}\" -Travis" + " " + Directory.GetCurrentDirectory();
         }
 
         // GET api/<ValuesController>/5
