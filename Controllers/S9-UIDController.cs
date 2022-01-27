@@ -2,11 +2,14 @@
 using System.IO;
 using System.Web;
 using Newtonsoft.Json;
+using GoogleAnalyticsTracker.Core;
+using GoogleAnalyticsTracker.AspNet;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace SS_API
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class S9_UIDController : ControllerBase
@@ -31,9 +34,13 @@ namespace SS_API
         {
             if(System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
-                return System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json");
+                User temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                temp.PFPLocation = temp.PFPLocation.Remove(0,12);
+                temp.PFPLocation = temp.PFPLocation.Insert(0,"https://matgames.net");
+                temp.Password = "HIDDEN";
+                return JsonConvert.SerializeObject(temp).ToString();
             }
-            return "";
+            return ""; 
         }
 
         // POST api/<ValuesController>

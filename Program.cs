@@ -1,3 +1,5 @@
+using GoogleAnalyticsTracker.AspNet;
+
 var builder = WebApplication.CreateBuilder(args);
 var allowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -22,6 +24,14 @@ builder.Services.AddCors(options =>
                       });
 });
 
+builder.Services.AddGoogleAnalyticsTracker(options =>
+{
+    options.TrackerId = "UA-217754838-1";
+    options.ShouldTrackRequestInMiddleware = TrackRequests.Yes;
+});
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -38,5 +48,7 @@ app.UseCors(allowSpecificOrigins);
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseGoogleAnalyticsTracker();
 
 app.Run();
