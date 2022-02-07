@@ -36,7 +36,7 @@ namespace SS_API
             {
                 User temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 temp.PFPLocation = temp.PFPLocation.Remove(0,12);
-                temp.PFPLocation = temp.PFPLocation.Insert(0,"https://matgames.net");
+                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net");
                 temp.Password = "HIDDEN";
                 return JsonConvert.SerializeObject(temp).ToString();
             }
@@ -64,8 +64,8 @@ namespace SS_API
             }
             else
             {
-                User inputUser = JsonConvert.DeserializeObject<User>(value);
-                User storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                User ?inputUser = JsonConvert.DeserializeObject<User>(value);
+                User ?storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password)
                 {
                     System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
