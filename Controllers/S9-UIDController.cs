@@ -37,7 +37,7 @@ namespace SS_API
                 User ?temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 temp.PFPLocation = temp.PFPLocation.Remove(0,12);
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net");
-                temp.Password = "HIDDEN";
+                temp.Password = "HIDDEN"; // doesn't seem safe, but in reality i think it is (as it is server side)
                 return JsonConvert.SerializeObject(temp).ToString();
             }
             return ""; 
@@ -55,7 +55,7 @@ namespace SS_API
         {
             value.Replace("\\",String.Empty);
 
-            await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
+            
 
             if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
@@ -74,6 +74,10 @@ namespace SS_API
                 if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password)
                 {
                     System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
+                }
+                else
+                {
+                    await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
                 }
             }
         }
