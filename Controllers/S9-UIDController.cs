@@ -64,7 +64,7 @@ namespace SS_API
                 var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
                 newUserActivityLog.Close();
 
-                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", DateTimeOffset.Now.ToUnixTimeSeconds().ToString());
+                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create")));
                 System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
             }
             else
@@ -73,10 +73,12 @@ namespace SS_API
                 User ?storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password)
                 {
+                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
                     System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
                 }
                 else
                 {
+                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFail")));
                     await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
                 }
             }
