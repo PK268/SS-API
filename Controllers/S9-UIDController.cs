@@ -34,7 +34,7 @@ namespace SS_API
         {
             if(System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
-                User temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                User ?temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 temp.PFPLocation = temp.PFPLocation.Remove(0,12);
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net");
                 temp.Password = "HIDDEN";
@@ -51,15 +51,20 @@ namespace SS_API
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}/{request}")]
-        public void Put(string id,string request,string function, [FromBody] string value)
+        public async void Put(string id,string request,string function, [FromBody] string value)
         {
             value.Replace("\\",String.Empty);
+
+            await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
 
             if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
                 newUserProfile.Close();
+                var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
+                newUserActivityLog.Close();
 
+                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", DateTimeOffset.Now.ToUnixTimeSeconds().ToString());
                 System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
             }
             else
