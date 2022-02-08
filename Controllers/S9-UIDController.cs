@@ -38,6 +38,7 @@ namespace SS_API
                 temp.PFPLocation = temp.PFPLocation.Remove(0,12);
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net");
                 temp.Password = "HIDDEN"; // doesn't seem safe, but in reality i think it is (as it is server side)
+                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get")));
                 return JsonConvert.SerializeObject(temp).ToString();
             }
             return ""; 
