@@ -35,13 +35,13 @@ namespace SS_API
             if(System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 User ?temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
-                temp.PFPLocation = temp.PFPLocation.Remove(0,12);
-                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net");
-                temp.Password = "HIDDEN"; // doesn't seem safe, but in reality i think it is (as it is server side)
-                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get")));
+                temp.PFPLocation = temp.PFPLocation.Remove(0,12); //Removing filepath
+                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessable URL
+                temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
+                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get"))); //Log
                 return JsonConvert.SerializeObject(temp).ToString();
             }
-            return ""; 
+            return $"User not found: {request} of type: {id}"; 
         }
 
         // POST api/<ValuesController>
@@ -54,30 +54,31 @@ namespace SS_API
         [HttpPut("{id}/{request}")]
         public async void Put(string id,string request,string function, [FromBody] string value)
         {
-            value.Replace("\\",String.Empty);
+            value.Replace("\\",String.Empty); //Re formats stirng from transport
 
-            
-
-            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
+            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
             {
                 var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
                 newUserProfile.Close();
                 var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
                 newUserActivityLog.Close();
 
-                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create")));
-                System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
+                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create"))); //Create new log file
+                System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value); //Create new user file
             }
-            else
+            else //Edit existing user
             {
                 User ?inputUser = JsonConvert.DeserializeObject<User>(value);
                 User ?storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
-                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password)
+
+                inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
+
+                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
                 {
                     System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
                     System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
                 }
-                else
+                else //If they don't
                 {
                     System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFail")));
                     await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
