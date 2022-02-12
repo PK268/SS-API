@@ -2,8 +2,6 @@
 using System.IO;
 using System.Web;
 using Newtonsoft.Json;
-using GoogleAnalyticsTracker.Core;
-using GoogleAnalyticsTracker.AspNet;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,7 +32,7 @@ namespace SS_API
         {
             if(System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
-                User ?temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json")); 
                 temp.PFPLocation = temp.PFPLocation.Remove(0,12); //Removing filepath
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessable URL
                 temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
