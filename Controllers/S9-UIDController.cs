@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 
 namespace SS_API
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class S9_UIDController : ControllerBase
