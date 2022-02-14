@@ -2,9 +2,9 @@
 {
     public class User
     {
-        public string Username;
-        public string Password;
-        public string PFPLocation;
+        public string? Username;
+        public string? Password;
+        public string? PFPLocation;
         public DateTime DateCreated;
 
         public User(string username, string password, string pfpLocation, DateTime dateCreated)

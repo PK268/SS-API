@@ -65,8 +65,8 @@ namespace SS_API
             }
             else //Edit existing user
             {
-                User ?inputUser = JsonConvert.DeserializeObject<User>(value);
-                User ?storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                User? inputUser = JsonConvert.DeserializeObject<User>(value);
+                User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                 inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
 
