@@ -2,6 +2,8 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/pk268/ss-api/badge)](https://www.codefactor.io/repository/github/pk268/ss-api)
 
+[![CodeQL](https://github.com/PK268/SS-API/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/PK268/SS-API/actions/workflows/codeql-analysis.yml)
+
 #### Github Stats
 <img src="https://github-readme-stats.vercel.app/api?username=PK268&show_icons=true&theme=gotham" alt="github stats" width="45%" align="right"/>
 
