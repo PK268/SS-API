@@ -51,34 +51,32 @@ namespace SS_API
         [HttpPut("{id}/{request}")]
         public async void Put(string id, string request, string function, [FromBody] string value)
         {
-            value.Replace("\\", String.Empty); //Re formats stirng from transport
-
-            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
+            if (allowRequest(request))
             {
-                var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
-                newUserProfile.Close();
-                var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
-                newUserActivityLog.Close();
+                value.Replace("\\", String.Empty); //Re formats stirng from transport
 
-                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create"))); //Create new log file
-                System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value); //Create new user file
-            }
-            else //Edit existing user
-            {
-                User? inputUser = JsonConvert.DeserializeObject<User>(value);
-                User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
-
-                inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
-
-                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
-                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
-                    System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
+                    var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
+                    newUserProfile.Close();
+                    var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
+                    newUserActivityLog.Close();
+
+                    System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create"))); //Create new log file
+                    System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value); //Create new user file
                 }
-                else //If they don't
+                else //Edit existing user
                 {
-                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFail")));
-                    await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
+                    User? inputUser = JsonConvert.DeserializeObject<User>(value);
+                    User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+
+                    inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
+
+                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                    {
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
+                        System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
+                    }
                 }
             }
         }
@@ -87,37 +85,44 @@ namespace SS_API
         [HttpDelete("{id}/{request}")]
         public async void Delete(string id, string request, [FromBody] string value)
         {
-            value.Replace("\\", String.Empty); //Re formats stirng from transport
-
-            if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
+            if (allowRequest(request))
             {
-                User? inputUser = JsonConvert.DeserializeObject<User>(value);
-                User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                value.Replace("\\", String.Empty); //Re formats stirng from transport
 
-                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
-                    System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
-                }
-                else //If they don't
-                {
-                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
+                    User? inputUser = JsonConvert.DeserializeObject<User>(value);
+                    User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
-                    var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
-
-                    int logLineCount = log.Count();
-
-                    string logContents = log.Skip(logLineCount - 1).Take(1).First();
-
-                    AccessdFile? fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
-
-                    if(DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime < 6)
+                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
                     {
-                        await Task.Delay(4000); //4 seconds because there will be an extra 1 afterwards
+                        System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
                     }
-
-                    await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
                 }
             }
         }
+
+        /// <summary>
+        /// Takes in request (name of user) and determines weather or not to let a request go through.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>Weather or not to allow the request.</returns>
+        bool allowRequest(string request)
+        {
+            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
+
+            var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
+
+            int logLineCount = log.Count();
+
+            string logContents = log.Skip(logLineCount - 1).Take(1).First();
+
+            AccessdFile? fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
+
+            if (DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
+            {
+                return false;
+            }
+            return true;
+        }
     }
-}
