@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Web;
 using Newtonsoft.Json;
 
@@ -67,8 +69,9 @@ namespace SS_API
                 }
                 else //Edit existing user
                 {
-                    User? inputUser = JsonConvert.DeserializeObject<User>(value);
-                    User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    
+                    User? inputUser = deserializeInput(value);
+                    User? storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
 
@@ -95,8 +98,8 @@ namespace SS_API
 
                 if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
-                    User? inputUser = JsonConvert.DeserializeObject<User>(value);
-                    User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    User? inputUser = deserializeInput(value);
+                    User? storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
                     {
@@ -109,6 +112,15 @@ namespace SS_API
                 }
             }
         }
+        /// <summary>
+        /// Generates a MemoryStream from a string (copied from you know where)
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>Converted stream</returns>
+        static MemoryStream GenerateStreamFromString(string value)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
+        }
 
         /// <summary>
         /// Takes in request (name of user) and determines weather or not to let a request go through.
@@ -117,7 +129,6 @@ namespace SS_API
         /// <returns>Weather or not to allow the request.</returns>
         bool allowRequest(string request)
         {
-
             var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
 
             int logLineCount = log.Count();
@@ -134,5 +145,13 @@ namespace SS_API
             System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginDeny")));
             return false;
         }
+
+        User deserializeInput(string value)
+        {
+            var ds = new DataContractJsonSerializer(typeof(User));
+            return (User)ds.ReadObject(GenerateStreamFromString(value));
+        }
+        
+        
     }
 }
