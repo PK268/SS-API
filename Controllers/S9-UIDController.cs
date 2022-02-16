@@ -69,7 +69,6 @@ namespace SS_API
                 }
                 else //Edit existing user
                 {
-                    
                     User? inputUser = deserializeInput(value);
                     User? storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
@@ -151,7 +150,5 @@ namespace SS_API
             var ds = new DataContractJsonSerializer(typeof(User));
             return (User)ds.ReadObject(GenerateStreamFromString(value));
         }
-        
-        
     }
 }
