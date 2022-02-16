@@ -29,16 +29,16 @@ namespace SS_API
         [HttpGet("{id}/{request}")]
         public string Get(string id, string request)
         {
-            if(System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
+            if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
-                User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json")); 
-                temp.PFPLocation = temp.PFPLocation.Remove(0,12); //Removing filepath
+                User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                temp.PFPLocation = temp.PFPLocation.Remove(0, 12); //Removing filepath
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessable URL
                 temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
                 System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get"))); //Log
                 return JsonConvert.SerializeObject(temp).ToString();
             }
-            return $"User not found: {request} of type: {id}"; 
+            return $"User not found: {request} of type: {id}";
         }
 
         // POST api/<ValuesController>
@@ -49,9 +49,9 @@ namespace SS_API
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}/{request}")]
-        public async void Put(string id,string request,string function, [FromBody] string value)
+        public async void Put(string id, string request, string function, [FromBody] string value)
         {
-            value.Replace("\\",String.Empty); //Re formats stirng from transport
+            value.Replace("\\", String.Empty); //Re formats stirng from transport
 
             if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
             {
@@ -84,9 +84,40 @@ namespace SS_API
         }
 
         // DELETE api/<ValuesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{id}/{request}")]
+        public async void Delete(string id, string request, [FromBody] string value)
         {
+            value.Replace("\\", String.Empty); //Re formats stirng from transport
+
+            if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
+            {
+                User? inputUser = JsonConvert.DeserializeObject<User>(value);
+                User? storedUser = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+
+                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                {
+                    System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
+                }
+                else //If they don't
+                {
+                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
+
+                    var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
+
+                    int logLineCount = log.Count();
+
+                    string logContents = log.Skip(logLineCount - 1).Take(1).First();
+
+                    AccessdFile? fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
+
+                    if(DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime < 6)
+                    {
+                        await Task.Delay(4000); //4 seconds because there will be an extra 1 afterwards
+                    }
+
+                    await Task.Delay(1000); //intentional delay to annoy people and definently not to protect against brute force attacks.
+                }
+            }
         }
     }
 }
