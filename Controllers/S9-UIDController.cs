@@ -77,6 +77,10 @@ namespace SS_API
                         System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
                         System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
                     }
+                    else
+                    {
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFail")));
+                    }
                 }
             }
         }
@@ -98,6 +102,10 @@ namespace SS_API
                     {
                         System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
                     }
+                    else
+                    {
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
+                    }
                 }
             }
         }
@@ -109,7 +117,6 @@ namespace SS_API
         /// <returns>Weather or not to allow the request.</returns>
         bool allowRequest(string request)
         {
-            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
 
             var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
 
@@ -121,9 +128,11 @@ namespace SS_API
 
             if (DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
             {
-                return false;
+                return true;
             }
-            return true;
+
+            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginDeny")));
+            return false;
         }
     }
 }
