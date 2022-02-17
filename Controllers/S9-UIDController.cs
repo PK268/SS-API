@@ -65,6 +65,11 @@ namespace SS_API
         [HttpPut("{id}/{request}")]
         public async void Put(string id, string request, string function, [FromBody] string value)
         {
+            if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
+            {
+                return;
+            }
+            
             if (allowRequest(request))
             {
                 value.Replace("\\", String.Empty); //Re formats stirng from transport
@@ -103,6 +108,11 @@ namespace SS_API
         [HttpDelete("{id}/{request}")]
         public async void Delete(string id, string request, [FromBody] string value)
         {
+            if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
+            {
+                return;
+            }
+            
             if (allowRequest(request))
             {
                 value.Replace("\\", String.Empty); //Re formats stirng from transport
