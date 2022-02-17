@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Newtonsoft.Json;
 
@@ -31,6 +32,17 @@ namespace SS_API
         [HttpGet("{id}/{request}")]
         public string Get(string id, string request)
         {
+            if (id != "u")
+            {
+                return "Invalid ID specifier: \"" + id + "\". Please use the correct format.";
+            }
+
+            if (Regex.IsMatch(request, @"[,/\\.]"))
+            {
+                return "Invalid Request: " + request + ". Please use the correct format.";
+            }
+            
+            
             if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
