@@ -42,7 +42,6 @@ namespace SS_API
                 return "Invalid Request: " + request + ". Please use the correct format.";
             }
             
-            
             if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
