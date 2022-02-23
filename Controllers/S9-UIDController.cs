@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
 using Newtonsoft.Json;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -44,12 +42,12 @@ namespace SS_API
             
             if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
-                User? temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                var temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 temp.PFPLocation = temp.PFPLocation.Remove(0, 12); //Removing filepath
-                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessable URL
+                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessible URL
                 temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
                 System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get"))); //Log
-                return JsonConvert.SerializeObject(temp).ToString();
+                return JsonConvert.SerializeObject(temp);
             }
             return $"User not found: {request} of type: {id}";
         }
@@ -62,7 +60,7 @@ namespace SS_API
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}/{request}")]
-        public async void Put(string id, string request, string function, [FromBody] string value)
+        public void Put(string id, string request, string function, [FromBody] string value)
         {
             if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
             {
@@ -71,7 +69,7 @@ namespace SS_API
             
             if (allowRequest(request))
             {
-                value.Replace("\\", String.Empty); //Re formats stirng from transport
+                value.Replace("\\", String.Empty); //Re formats string from transport
 
                 if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
@@ -85,8 +83,8 @@ namespace SS_API
                 }
                 else //Edit existing user
                 {
-                    User? inputUser = deserializeInput(value);
-                    User? storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    var inputUser = deserializeInput(value);
+                    var storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
 
@@ -105,7 +103,7 @@ namespace SS_API
 
         // DELETE api/<ValuesController>/5
         [HttpDelete("{id}/{request}")]
-        public async void Delete(string id, string request, [FromBody] string value)
+        public void Delete(string id, string request, [FromBody] string value)
         {
             if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
             {
@@ -114,12 +112,12 @@ namespace SS_API
             
             if (allowRequest(request))
             {
-                value.Replace("\\", String.Empty); //Re formats stirng from transport
+                value.Replace("\\", String.Empty); //Re formats string from transport
 
                 if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
-                    User? inputUser = deserializeInput(value);
-                    User? storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    var inputUser = deserializeInput(value);
+                    var storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
                     {
