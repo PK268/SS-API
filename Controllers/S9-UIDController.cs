@@ -6,14 +6,13 @@ using Newtonsoft.Json;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace SS_API
+namespace SS_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class S9_UIDController : ControllerBase
     {
         private readonly ILogger<S9_UIDController> _logger;
-
         public S9_UIDController(ILogger<S9_UIDController> logger)
         {
             _logger = logger;
@@ -69,7 +68,7 @@ namespace SS_API
             
             if (allowRequest(request))
             {
-                value.Replace("\\", String.Empty); //Re formats string from transport
+                value = value.Replace("\\", String.Empty); //Re formats string from transport
 
                 if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
@@ -112,7 +111,7 @@ namespace SS_API
             
             if (allowRequest(request))
             {
-                value.Replace("\\", String.Empty); //Re formats string from transport
+                value = value.Replace("\\", String.Empty); //Re formats string from transport
 
                 if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
@@ -137,7 +136,7 @@ namespace SS_API
         /// <returns>Converted stream</returns>
         static MemoryStream GenerateStreamFromString(string value)
         {
-            return new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
+            return new MemoryStream(Encoding.UTF8.GetBytes(value));
         }
 
         /// <summary>
