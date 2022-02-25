@@ -38,20 +38,19 @@ namespace SS_API.Controllers
             {
                 return $"Invalid Request: \"{request}\". Please use the correct format.";
             }
+
+            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
+                return $"User not found: {request} of type: {id}";
             
-            if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
-            {
-                var temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+            var temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
                 
-                if (temp?.PFPLocation == null) { return $"User not found: {request} of type: {id}"; }
+            if (temp?.PFPLocation == null) { return $"User not found: {request} of type: {id}"; }
                 
-                temp.PFPLocation = temp.PFPLocation.Remove(0, 12); //Removing filepath
-                temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessible URL
-                temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
-                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Get"))}"); //Log
-                return JsonConvert.SerializeObject(temp);
-            }
-            return $"User not found: {request} of type: {id}";
+            temp.PFPLocation = temp.PFPLocation.Remove(0, 12); //Removing filepath
+            temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessible URL
+            temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
+            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Get"))}"); //Log
+            return JsonConvert.SerializeObject(temp);
         }
 
         // POST api/<ValuesController>
@@ -65,40 +64,38 @@ namespace SS_API.Controllers
         public void Put(string id, string request, string function, [FromBody] string value)
         {
             if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
-            {
                 return;
-            }
             
-            if (AllowRequest(request))
+            if (!AllowRequest(request))
+                return;
+            
+            value = value.Replace("\\", String.Empty); //Re formats string from transport
+
+            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
             {
-                value = value.Replace("\\", String.Empty); //Re formats string from transport
+                var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
+                newUserProfile.Close();
+                var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
+                newUserActivityLog.Close();
 
-                if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
+                System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create"))); //Create new log file
+                System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value); //Create new user file
+            }
+            else //Edit existing user
+            {
+                var inputUser = DeserializeInput(value);
+                var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+
+                inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
+
+                if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
                 {
-                    var newUserProfile = System.IO.File.Create($"/home/pi/sitenine/{id}/{request}.json");
-                    newUserProfile.Close();
-                    var newUserActivityLog = System.IO.File.Create($"/home/pi/sitenine/logs/{id}/{request}.txt");
-                    newUserActivityLog.Close();
-
-                    System.IO.File.WriteAllText($"/home/pi/sitenine/logs/{request}.txt", JsonConvert.SerializeObject(new AccessdFile("Create"))); //Create new log file
-                    System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value); //Create new user file
+                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Login"))}");
+                    System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
                 }
-                else //Edit existing user
+                else
                 {
-                    var inputUser = DeserializeInput(value);
-                    var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
-
-                    inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
-
-                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
-                    {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Login"))}");
-                        System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
-                    }
-                    else
-                    {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFail"))}");
-                    }
+                    System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFail"))}");
                 }
             }
         }
@@ -111,25 +108,22 @@ namespace SS_API.Controllers
             {
                 return;
             }
+
+            if (!AllowRequest(request)) return;
+            value = value.Replace("\\", String.Empty); //Re formats string from transport
+
+            if (!System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) return;
             
-            if (AllowRequest(request))
+            var inputUser = DeserializeInput(value);
+            var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+
+            if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
             {
-                value = value.Replace("\\", String.Empty); //Re formats string from transport
-
-                if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
-                {
-                    var inputUser = DeserializeInput(value);
-                    var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
-
-                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
-                    {
-                        System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
-                    }
-                    else
-                    {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete"))}");
-                    }
-                }
+                System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
+            }
+            else
+            {
+                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete"))}");
             }
         }
         /// <summary>
