@@ -69,7 +69,7 @@ namespace SS_API.Controllers
                 return;
             }
             
-            if (allowRequest(request))
+            if (AllowRequest(request))
             {
                 value = value.Replace("\\", String.Empty); //Re formats string from transport
 
@@ -85,8 +85,8 @@ namespace SS_API.Controllers
                 }
                 else //Edit existing user
                 {
-                    var inputUser = deserializeInput(value);
-                    var storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    var inputUser = DeserializeInput(value);
+                    var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
 
@@ -112,14 +112,14 @@ namespace SS_API.Controllers
                 return;
             }
             
-            if (allowRequest(request))
+            if (AllowRequest(request))
             {
                 value = value.Replace("\\", String.Empty); //Re formats string from transport
 
                 if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json")) //Create new user
                 {
-                    var inputUser = deserializeInput(value);
-                    var storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                    var inputUser = DeserializeInput(value);
+                    var storedUser = DeserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
                     if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
                     {
@@ -137,7 +137,7 @@ namespace SS_API.Controllers
         /// </summary>
         /// <param name="value"></param>
         /// <returns>Converted stream</returns>
-        static MemoryStream GenerateStreamFromString(string value)
+        private static MemoryStream GenerateStreamFromString(string value)
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(value));
         }
@@ -147,11 +147,11 @@ namespace SS_API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>Weather or not to allow the request.</returns>
-        private bool allowRequest(string request)
+        private static bool AllowRequest(string request)
         {
             var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
             
-            string logContents = log.Skip(log.Count() - 1).Take(1).First();
+            var logContents = log.Skip(log.Count() - 1).Take(1).First();
 
             var fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
 
@@ -164,7 +164,7 @@ namespace SS_API.Controllers
             return false;
         }
 
-        private User deserializeInput(string value)
+        private static User DeserializeInput(string value)
         {
             var ds = new DataContractJsonSerializer(typeof(User));
             return (User)ds.ReadObject(GenerateStreamFromString(value));
