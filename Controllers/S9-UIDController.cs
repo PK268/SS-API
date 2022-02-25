@@ -155,7 +155,6 @@ namespace SS_API.Controllers
             }
 
             System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginDeny"))}");
-            Console.WriteLine("hell0, sussy boy");
             return false;
         }
 
