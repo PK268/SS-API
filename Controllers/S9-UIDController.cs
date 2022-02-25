@@ -31,21 +31,24 @@ namespace SS_API.Controllers
         {
             if (id != "u")
             {
-                return "Invalid ID specifier: \"" + id + "\". Please use the correct format.";
+                return "Invalid ID specifier: \"{id}\". Please use the correct format.";
             }
 
             if (Regex.IsMatch(request, @"[,/\\.]"))
             {
-                return "Invalid Request: " + request + ". Please use the correct format.";
+                return $"Invalid Request: \"{request}\". Please use the correct format.";
             }
             
             if (System.IO.File.Exists($"/home/pi/sitenine/{id}/{request}.json"))
             {
                 var temp = JsonConvert.DeserializeObject<User>(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
+                
+                if (temp?.PFPLocation == null) { return $"User not found: {request} of type: {id}"; }
+                
                 temp.PFPLocation = temp.PFPLocation.Remove(0, 12); //Removing filepath
                 temp.PFPLocation = temp.PFPLocation.Insert(0, "https://matgames.net"); //Making it an accessible URL
                 temp.Password = "HIDDEN"; // Doesn't seem safe, but in reality I THINK it is (as it is server side)
-                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Get"))); //Log
+                System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Get"))}"); //Log
                 return JsonConvert.SerializeObject(temp);
             }
             return $"User not found: {request} of type: {id}";
@@ -87,14 +90,14 @@ namespace SS_API.Controllers
 
                     inputUser.DateCreated = storedUser.DateCreated; //Ensures DateCreated can't be changed
 
-                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
                     {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("Login")));
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("Login"))}");
                         System.IO.File.WriteAllText($"/home/pi/sitenine/{id}/{request}.json", value);
                     }
                     else
                     {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFail")));
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFail"))}");
                     }
                 }
             }
@@ -118,13 +121,13 @@ namespace SS_API.Controllers
                     var inputUser = deserializeInput(value);
                     var storedUser = deserializeInput(System.IO.File.ReadAllText($"/home/pi/sitenine/{id}/{request}.json"));
 
-                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If creds check out
+                    if (inputUser.Username == storedUser.Username && inputUser.Password == storedUser.Password) //If credentials check out
                     {
                         System.IO.File.Delete($"/home/pi/sitenine/{id}/{request}.json");
                     }
                     else
                     {
-                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete")));
+                        System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginFailDelete"))}");
                     }
                 }
             }
@@ -144,26 +147,24 @@ namespace SS_API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>Weather or not to allow the request.</returns>
-        bool allowRequest(string request)
+        private bool allowRequest(string request)
         {
             var log = System.IO.File.ReadLines($"/home/pi/sitenine/logs/{request}.txt");
+            
+            string logContents = log.Skip(log.Count() - 1).Take(1).First();
 
-            int logLineCount = log.Count();
+            var fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
 
-            string logContents = log.Skip(logLineCount - 1).Take(1).First();
-
-            AccessdFile? fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
-
-            if (DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
+            if (fromLog != null && DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
             {
                 return true;
             }
 
-            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", "\n" + JsonConvert.SerializeObject(new AccessdFile("LoginDeny")));
+            System.IO.File.AppendAllText($"/home/pi/sitenine/logs/{request}.txt", $"\n{JsonConvert.SerializeObject(new AccessdFile("LoginDeny"))}");
             return false;
         }
 
-        User deserializeInput(string value)
+        private User deserializeInput(string value)
         {
             var ds = new DataContractJsonSerializer(typeof(User));
             return (User)ds.ReadObject(GenerateStreamFromString(value));
