@@ -12,6 +12,5 @@
             Function = function;
             Acid = acid;
         }
-
     }
 }

@@ -11,7 +11,6 @@ namespace SS_API.Controllers
     [ApiController]
     public class GeneController : ControllerBase
     {
-
         private readonly ILogger<GeneController> _logger;
         private List<Gene> geneData;
 
