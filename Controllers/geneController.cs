@@ -2,6 +2,7 @@
 
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Newtonsoft.Json;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -49,10 +50,13 @@ namespace SS_API.Controllers
         [HttpPut("{id}/{username}/{password}")]
         public void Put(string id, string username, string password,[FromBody] string value)
         {
-            if (username == System.IO.File.ReadAllText("~/gene/adminUSername.txt") && password == System.IO.File.ReadAllText("~/gene/adminPassword.txt"))
+            string[] seperated = id.Split(',');
+            Gene temp = new Gene(seperated[0], seperated[1], seperated[2]);
+            geneData.Add(temp);
+            if (username == System.IO.File.ReadAllText("~/gene/adminUsername.txt") && password == System.IO.File.ReadAllText("~/gene/adminPassword.txt"))
             {
-                System.IO.File.WriteAllText("~/gene/geneData.json",value);
-                geneData = deserializeInput(value);
+                System.IO.File.WriteAllText("~/gene/geneData.json",JsonConvert.SerializeObject(geneData));
+                //geneData = deserializeInput(value);
             }
         }
 
