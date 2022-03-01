@@ -153,7 +153,7 @@ namespace SS_API
 
             string logContents = log.Skip(logLineCount - 1).Take(1).First();
 
-            AccessdFile? fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
+            var fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
 
             if (DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
             {
