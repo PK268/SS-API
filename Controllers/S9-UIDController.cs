@@ -147,10 +147,6 @@ namespace SS_API.Controllers
             
             var logContents = log.Skip(log.Count() - 1).Take(1).First();
 
-            int logLineCount = log.Count();
-
-            string logContents = log.Skip(logLineCount - 1).Take(1).First();
-
             var fromLog = JsonConvert.DeserializeObject<AccessdFile>(logContents);
 
             if (fromLog != null && DateTimeOffset.Now.ToUnixTimeSeconds() - fromLog.UnixTime > 10)
