@@ -60,8 +60,8 @@ namespace SS_API.Controllers
         }
 
         // PUT api/<ValuesController>/5
-        [HttpPut("{id}/{request}")]
-        public void Put(string id, string request, string function, [FromBody] string value)
+        [HttpPut("{id}/{request}/{function?}")]
+        public void Put(string id, string request, [FromBody] string value, string? function = null)
         {
             if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
                 return;
