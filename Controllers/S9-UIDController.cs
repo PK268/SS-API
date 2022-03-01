@@ -104,10 +104,8 @@ namespace SS_API.Controllers
         [HttpDelete("{id}/{request}")]
         public void Delete(string id, string request, [FromBody] string value)
         {
-            if (id != "u" || Regex.IsMatch(request, @"[,/\\.]"))
-            {
-                return;
-            }
+            if (id != "u" || Regex.IsMatch(request, @"[,/\\.]")) return;
+            
 
             if (!AllowRequest(request)) return;
             value = value.Replace("\\", String.Empty); //Re formats string from transport
