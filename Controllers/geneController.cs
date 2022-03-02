@@ -66,9 +66,10 @@ namespace SS_API.Controllers
         {
             string[] seperated = id.Split(';');
             Gene temp = new Gene(seperated[0], seperated[1], seperated[2]);
-            geneData.Add(temp);
-            if (username == System.IO.File.ReadAllText("/home/pi/gene/adminUsername.txt") && password == System.IO.File.ReadAllText("home/pi/gene/adminPassword.txt"))
+
+            if (username == System.IO.File.ReadAllText("/home/pi/gene/adminUsername.txt").Trim() && password == System.IO.File.ReadAllText("/home/pi/gene/adminPassword.txt").Trim())
             {
+                geneData.Add(temp);
                 System.IO.File.WriteAllText("/home/pi/gene/geneData.json", JsonConvert.SerializeObject(geneData));
                 //geneData = deserializeInput(value);
             }
