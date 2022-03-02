@@ -13,7 +13,7 @@ namespace SS_API.Controllers
     public class GeneController : ControllerBase
     {
         private readonly ILogger<GeneController> _logger;
-        private List<Gene>? geneData;
+        private static List<Gene> geneData = new List<Gene>();
 
         public GeneController(ILogger<GeneController> logger)
         {
@@ -24,22 +24,28 @@ namespace SS_API.Controllers
         [HttpGet("{id}")]
         public string Get(string id)
         {
-            if (geneData == null)
+            if (geneData.Count == 0)
             {
                 string readData = System.IO.File.ReadAllText("/home/pi/gene/geneData.json");
                 if (readData != "")
                 {
                     geneData = deserializeInput(readData);
                 }
-                else
-                {
-                    geneData = new List<Gene>();
-                }
             }
-            
-            foreach(Gene gene in geneData)
+
+            if (id == "data")
             {
-                if(gene.Symbol == id)
+                string combinedData = "";
+                foreach (Gene gene in geneData)
+                {
+                    combinedData += $"{gene.Symbol},{gene.Acid},{gene.Function}\n";
+                }
+                return combinedData;
+            }
+
+            foreach (Gene gene in geneData)
+            {
+                if (gene.Symbol == id)
                 {
                     return $"{gene.Symbol}\n{gene.Acid}\n{gene.Function}";
                 }
@@ -56,14 +62,14 @@ namespace SS_API.Controllers
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}/{username}/{password}")]
-        public void Put(string id, string username, string password,[FromBody] string value)
+        public void Put(string id, string username, string password, [FromBody] string value)
         {
             string[] seperated = id.Split(';');
             Gene temp = new Gene(seperated[0], seperated[1], seperated[2]);
             geneData.Add(temp);
             if (username == System.IO.File.ReadAllText("/home/pi/gene/adminUsername.txt") && password == System.IO.File.ReadAllText("home/pi/gene/adminPassword.txt"))
             {
-                System.IO.File.WriteAllText("/home/pi/gene/geneData.json",JsonConvert.SerializeObject(geneData));
+                System.IO.File.WriteAllText("/home/pi/gene/geneData.json", JsonConvert.SerializeObject(geneData));
                 //geneData = deserializeInput(value);
             }
         }
