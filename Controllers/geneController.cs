@@ -13,7 +13,7 @@ namespace SS_API.Controllers
     public class GeneController : ControllerBase
     {
         private readonly ILogger<GeneController> _logger;
-        private List<Gene> geneData;
+        private List<Gene>? geneData;
 
         public GeneController(ILogger<GeneController> logger)
         {
@@ -24,9 +24,17 @@ namespace SS_API.Controllers
         [HttpGet("{id}")]
         public string Get(string id)
         {
-            if(geneData == null)
+            if (geneData == null)
             {
-                geneData = deserializeInput(System.IO.File.ReadAllText("~/gene/geneData.json"));
+                string readData = System.IO.File.ReadAllText("/home/pi/gene/geneData.json");
+                if (readData != "")
+                {
+                    geneData = deserializeInput(readData);
+                }
+                else
+                {
+                    geneData = new List<Gene>();
+                }
             }
             
             foreach(Gene gene in geneData)
@@ -50,12 +58,12 @@ namespace SS_API.Controllers
         [HttpPut("{id}/{username}/{password}")]
         public void Put(string id, string username, string password,[FromBody] string value)
         {
-            string[] seperated = id.Split(',');
+            string[] seperated = id.Split(';');
             Gene temp = new Gene(seperated[0], seperated[1], seperated[2]);
             geneData.Add(temp);
-            if (username == System.IO.File.ReadAllText("~/gene/adminUsername.txt") && password == System.IO.File.ReadAllText("~/gene/adminPassword.txt"))
+            if (username == System.IO.File.ReadAllText("/home/pi/gene/adminUsername.txt") && password == System.IO.File.ReadAllText("home/pi/gene/adminPassword.txt"))
             {
-                System.IO.File.WriteAllText("~/gene/geneData.json",JsonConvert.SerializeObject(geneData));
+                System.IO.File.WriteAllText("/home/pi/gene/geneData.json",JsonConvert.SerializeObject(geneData));
                 //geneData = deserializeInput(value);
             }
         }
