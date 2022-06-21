@@ -47,7 +47,7 @@ namespace SS_API.Controllers
             {
                 if (gene.Symbol == id)
                 {
-                    return $"{gene.Symbol}\n{gene.Acid}\n{gene.Function}";
+                    return $"{id}:\n{gene.Symbol}\n{gene.Acid}\n{gene.Function}";
                 }
             }
 
