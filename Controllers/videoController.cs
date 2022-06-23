@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NYoutubeDL;
+using System.IO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -46,10 +47,10 @@ namespace SS_API.Controllers
         {
             var youtubeDl = new YoutubeDL();
             int fCount = Directory.GetFiles("/media/pi/Long-Term/videos/", "*", SearchOption.TopDirectoryOnly).Length;
-            
+            string baseUrl = System.IO.File.ReadAllText("/media/pi/Long-Term/keyVideoUrl.txt");
             youtubeDl.Options.FilesystemOptions.Output = $"/media/pi/Long-Term/videos/{fCount+1}.mp4";
             youtubeDl.Options.PostProcessingOptions.ExtractAudio = true;
-            youtubeDl.VideoUrl = url;
+            youtubeDl.VideoUrl = baseUrl + url;
 
             // Or update the binary
             youtubeDl.Options.GeneralOptions.Update = true;
