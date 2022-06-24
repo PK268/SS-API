@@ -21,6 +21,7 @@ namespace SS_API.Controllers
         [HttpGet("{id}")]
         public string Get(string id)
         {
+            Console.WriteLine("Started user-requested download from id: " + id);
             int fcount = DownloadVideo(id);
             return $"https://matgames.net/LTS/videos/{fcount}.mp4";
         }
@@ -43,20 +44,27 @@ namespace SS_API.Controllers
         {
         }
 
-        public int DownloadVideo(string url)
+        private int DownloadVideo(string url)
         {
             var youtubeDl = new YoutubeDL();
             int fCount = Directory.GetFiles("/media/pi/Long-Term/videos/", "*", SearchOption.TopDirectoryOnly).Length;
             string baseUrl = System.IO.File.ReadAllText("/media/pi/Long-Term/keyVideoUrl.txt");
             youtubeDl.Options.FilesystemOptions.Output = $"/media/pi/Long-Term/videos/{fCount+1}.mp4";
             youtubeDl.Options.PostProcessingOptions.ExtractAudio = true;
-            youtubeDl.VideoUrl = baseUrl + url;
+            youtubeDl.Options.PostProcessingOptions.KeepVideo = true;
+            youtubeDl.Options.VideoFormatOptions.FormatAdvanced = "(mp4)[height <=? 720]";
+            youtubeDl.VideoUrl = $"{baseUrl}{url}".Trim().Replace(Environment.NewLine,"");
 
+            Console.WriteLine(youtubeDl.VideoUrl);
             // Or update the binary
             youtubeDl.Options.GeneralOptions.Update = true;
 
             // Optional, required if binary is not in $PATH
-            youtubeDl.YoutubeDlPath = "/usr/local/bin/youtube-dl";
+            //youtubeDl.YoutubeDlPath = "/usr/local/bin/youtube-dl";
+
+            youtubeDl.StandardOutputEvent += (sender, output) => Console.WriteLine(output);
+            youtubeDl.StandardErrorEvent += (sender, errorOutput) => Console.WriteLine(errorOutput);
+
             youtubeDl.DownloadAsync();
             return fCount+1;
         }
